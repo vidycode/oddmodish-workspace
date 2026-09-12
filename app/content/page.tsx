@@ -24,7 +24,7 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
   const supabase = await createClient();
   const [{ data: contentData }, { data: writerData }] = await Promise.all([
     supabase.from("content_items").select(
-      "id, kind, title, body, subreddit, status, priority, due_at, reddit_url, revision_reason, writer_id, version, clients(name), campaigns(name), writer:profiles!content_items_writer_id_fkey(display_name,email)"
+      "id, kind, title, body, subreddit, status, priority, due_at, reddit_url, revision_reason, writer_id, original_content_id, version, clients(name), campaigns(name), writer:profiles!content_items_writer_id_fkey(display_name,email)"
     ).eq("organization_id", context.organizationId).order("due_at", { ascending: true, nullsFirst: false }).limit(200),
     supabase.from("memberships").select("user_id, profiles(display_name,email)")
       .eq("organization_id", context.organizationId).eq("status", "active")
