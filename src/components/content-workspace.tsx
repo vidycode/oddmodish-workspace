@@ -31,6 +31,7 @@ interface Props {
   role: Role;
   initialItems: DeliveryRow[];
   writers: readonly { id: string; label: string }[];
+  showCreate?: boolean;
 }
 
 const labels: Partial<Record<ContentStatus, string>> = {
@@ -49,7 +50,7 @@ const labels: Partial<Record<ContentStatus, string>> = {
   archived: "Archive",
 };
 
-export function ContentWorkspace({ organizationId, userId, accessLevel, role, initialItems, writers }: Props) {
+export function ContentWorkspace({ organizationId, userId, accessLevel, role, initialItems, writers, showCreate = true }: Props) {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -115,7 +116,7 @@ export function ContentWorkspace({ organizationId, userId, accessLevel, role, in
   }
 
   return <div className="deliveryWorkspace">
-    {canCreate ? <section className="managementPanel">
+    {canCreate && showCreate ? <section className="managementPanel">
       <div className="sectionHeading"><div><p className="eyebrow">QUICK CREATE</p><h2>Assign content</h2></div><small>One record stays synced across Writing, Upload and Monitoring.</small></div>
       <form action={createItem} className="contentCreateForm">
         <label>Client<input name="clientName" placeholder="Client name" required /></label>
