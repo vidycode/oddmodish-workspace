@@ -11,8 +11,16 @@ interface WriterMembership {
   profiles: { display_name: string | null; email: string } | null;
 }
 
-export default async function ContentPage() {
+const focusConfig = {
+  all: { title: "Writing → Upload → Live", description: "One synchronized record for drafts, approvals, Reddit URLs, removals and linked replacements." },
+  live: { title: "Live monitor", description: "Uploaded content, verification state, exact Reddit URLs and confirmed removals." },
+  replacements: { title: "Replacement queue", description: "Removed originals and linked replacement work moving back from Writing to Upload." },
+} as const;
+
+export default async function ContentPage({ searchParams }: { searchParams: Promise<{ focus?: string }> }) {
   const context = await requireWorkspaceContext("content.read");
+  const requested = (await searchParams).focus;
+  const focus: keyof typeof focusConfig = requested === "live" || requested === "replacements" ? requested : "all";
   const supabase = await createClient();
   const [{ data: contentData }, { data: writerData }] = await Promise.all([
     supabase.from("content_items").select(
@@ -23,7 +31,12 @@ export default async function ContentPage() {
       .in("job_role", ["writer","team_lead","agency_ops_lead"]),
   ]);
 
-  const items = (contentData ?? []) as unknown as DeliveryRow[];
+  const allItems = (contentData ?? []) as unknown as DeliveryRow[];
+  const items = focus === "live"
+    ? allItems.filter(item => ["ready_to_upload","scheduled","uploaded","live","removed","replacement_ready","reuploaded","verified_live"].includes(item.status))
+    : focus === "replacements"
+      ? allItems.filter(item => item.status.includes("replacement") || item.original_content_id)
+      : allItems;
   const writers = ((writerData ?? []) as unknown as WriterMembership[]).map(row => ({
     id: row.user_id,
     label: row.profiles?.display_name ?? row.profiles?.email ?? "Writer",
@@ -31,7 +44,8 @@ export default async function ContentPage() {
 
   return <main className="managementShell wideManagement">
     <ActivityBeacon organizationId={context.organizationId} />
-    <header className="managementHeader"><div><p className="eyebrow">CONTENT DELIVERY</p><h1>Writing → Upload → Live</h1><p>One synchronized record for drafts, approvals, Reddit URLs, removals and linked replacements.</p></div><div className="headerActions"><Link className="secondaryButton" href="/">Control Tower</Link><span className="accessPill">{context.role.replaceAll("_"," ")} · {context.accessLevel}</span></div></header>
-    <ContentWorkspace organizationId={context.organizationId} userId={context.userId} accessLevel={context.accessLevel} role={context.role} initialItems={items} writers={writers} />
+    <header className="managementHeader"><div><p className="eyebrow">CONTENT DELIVERY</p><h1>{focusConfig[focus].title}</h1><p>{focusConfig[focus].description}</p></div><div className="headerActions"><Link className="secondaryButton" href="/">Control Tower</Link><span className="accessPill">{context.role.replaceAll("_"," ")} · {context.accessLevel}</span></div></header>
+    <nav className="viewTabs" aria-label="Delivery views"><Link className={focus === "all" ? "active" : ""} href="/content">All workflow</Link><Link className={focus === "live" ? "active" : ""} href="/content?focus=live">Upload & live</Link><Link className={focus === "replacements" ? "active" : ""} href="/content?focus=replacements">Replacements</Link></nav>
+    <ContentWorkspace organizationId={context.organizationId} userId={context.userId} accessLevel={context.accessLevel} role={context.role} initialItems={items} writers={writers} showCreate={focus === "all"} />
   </main>;
 }
