@@ -18,6 +18,10 @@ Internal agency operations workspace for Oddmodish, built around one auditable f
 - Netlify deployment configuration
 - Architecture, phased implementation plan and developer handoff
 
+## Design workflow
+
+The production React components are the design source of truth; this project does not depend on Figma. Build the interface directly in code using the [UI direction and reference patterns](docs/ui-direction.md), then validate responsive, permission, loading, empty, error and keyboard states in the browser.
+
 ## Local development
 
 ```bash
@@ -38,7 +42,7 @@ This runs ESLint, TypeScript, domain tests and an optimized production build.
 
 ## Product references
 
-- [Figma workspace](https://www.figma.com/design/nsgmGxYlMe0z3lv4VweSrO)
+- [UI direction](docs/ui-direction.md)
 - [Architecture](docs/architecture.md)
 - [Developer handoff](docs/developer-handoff.md)
 - [Implementation plan](docs/implementation-plan.md)
