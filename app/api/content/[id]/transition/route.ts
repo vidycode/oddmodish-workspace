@@ -15,7 +15,7 @@ const schema = z.object({
   to: z.enum(statuses),
   expectedVersion: z.number().int().positive(),
   reason: z.string().trim().max(1000).nullable().optional(),
-  redditUrl: z.url().startsWith("https://www.reddit.com/").nullable().optional(),
+  redditUrl: z.string().url().refine((value) => /^https:\/\/(www\.)?reddit\.com\//.test(value), "Use an exact Reddit URL").nullable().optional(),
   idempotencyKey: z.string().trim().min(8).max(120),
 });
 
