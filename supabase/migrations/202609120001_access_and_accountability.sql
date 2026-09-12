@@ -201,7 +201,19 @@ returns boolean language sql stable security definer set search_path = public as
   select exists (
     select 1 from public.memberships
     where organization_id = p_organization_id and user_id = auth.uid() and status = 'active'
-      and (access_level = 'owner' or job_role in ('founder', 'agency_ops_lead', 'team_lead', 'analyst'))
+      and (access_level = 'owner' or job_role in ('founder', 'agency_ops_lead', 'analyst'))
+  );
+$$;
+
+create or replace function public.can_read_member_activity(p_organization_id uuid, p_subject_user_id uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1
+    from public.memberships reader
+    join public.memberships subject on subject.organization_id = reader.organization_id and subject.user_id = p_subject_user_id and subject.status = 'active'
+    where reader.organization_id = p_organization_id and reader.user_id = auth.uid() and reader.status = 'active'
+      and (reader.access_level = 'owner' or reader.job_role in ('founder', 'agency_ops_lead', 'analyst')
+        or (reader.job_role = 'team_lead' and reader.team_id is not null and reader.team_id = subject.team_id))
   );
 $$;
 
@@ -223,8 +235,8 @@ returns boolean language sql stable security definer set search_path = public as
     where d.id = p_dashboard_id and (
       m.access_level = 'owner'
       or (d.visibility = 'organization' and (cardinality(d.allowed_roles) = 0 or m.job_role = any(d.allowed_roles)))
-      or (d.visibility = 'team' and d.team_id = m.team_id)
-      or m.job_role = any(d.allowed_roles)
+      or (d.visibility = 'team' and d.team_id = m.team_id and (cardinality(d.allowed_roles) = 0 or m.job_role = any(d.allowed_roles)))
+      or (d.visibility = 'private' and m.job_role = any(d.allowed_roles))
       or d.created_by = auth.uid()
       or exists (
         select 1 from public.resource_grants g
@@ -329,7 +341,7 @@ language sql stable security definer set search_path = public as $$
   from public.presence_sessions ps
   join public.profiles p on p.id = ps.user_id
   where ps.organization_id = p_organization_id
-    and public.can_read_team_activity(p_organization_id)
+    and public.can_read_member_activity(p_organization_id, ps.user_id)
     and ps.last_seen_at >= now() - interval '2 minutes'
   order by ps.last_seen_at desc;
 $$;
@@ -372,11 +384,11 @@ alter table public.presence_sessions enable row level security;
 
 create policy organizations_read on public.organizations for select using (public.is_org_member(id));
 create policy organizations_update on public.organizations for update using (public.is_org_owner(id)) with check (public.is_org_owner(id));
-create policy profiles_self_or_colleague_read on public.profiles for select using (id = auth.uid() or exists (select 1 from public.memberships mine join public.memberships theirs on theirs.organization_id = mine.organization_id where mine.user_id = auth.uid() and mine.status = 'active' and theirs.user_id = profiles.id));
+create policy profiles_self_or_colleague_read on public.profiles for select using (id = auth.uid() or exists (select 1 from public.memberships mine where mine.user_id = auth.uid() and mine.status = 'active' and public.can_read_member_activity(mine.organization_id, profiles.id)));
 create policy profiles_self_update on public.profiles for update using (id = auth.uid()) with check (id = auth.uid());
 create policy teams_read on public.teams for select using (public.is_org_member(organization_id));
 create policy teams_manage on public.teams for all using (public.can_manage_members(organization_id)) with check (public.can_manage_members(organization_id));
-create policy memberships_read on public.memberships for select using (public.is_org_member(organization_id));
+create policy memberships_read on public.memberships for select using (user_id = auth.uid() or public.can_read_member_activity(organization_id, user_id));
 create policy memberships_owner_manage on public.memberships for all using (public.is_org_owner(organization_id)) with check (public.is_org_owner(organization_id));
 create policy invitations_read on public.invitations for select using (public.can_manage_members(organization_id));
 create policy invitations_insert on public.invitations for insert with check (public.can_manage_members(organization_id) and invited_by = auth.uid() and (access_level <> 'owner' or public.is_org_owner(organization_id)));
@@ -385,11 +397,11 @@ create policy dashboards_read on public.dashboards for select using (public.can_
 create policy dashboards_manage on public.dashboards for all using (public.can_manage_members(organization_id)) with check (public.can_manage_members(organization_id));
 create policy grants_read on public.resource_grants for select using (public.is_org_member(organization_id));
 create policy grants_manage on public.resource_grants for all using (public.is_org_owner(organization_id)) with check (public.is_org_owner(organization_id));
-create policy activity_read on public.activity_events for select using (actor_id = auth.uid() or public.can_read_team_activity(organization_id));
-create policy time_read on public.time_entries for select using (user_id = auth.uid() or public.can_read_team_activity(organization_id));
+create policy activity_read on public.activity_events for select using (actor_id = auth.uid() or public.can_read_member_activity(organization_id, actor_id));
+create policy time_read on public.time_entries for select using (user_id = auth.uid() or public.can_read_member_activity(organization_id, user_id));
 create policy time_insert on public.time_entries for insert with check (user_id = auth.uid() and public.can_track_time(organization_id));
 create policy time_update on public.time_entries for update using (user_id = auth.uid()) with check (user_id = auth.uid() and public.can_track_time(organization_id));
-create policy presence_read on public.presence_sessions for select using (user_id = auth.uid() or public.can_read_team_activity(organization_id));
+create policy presence_read on public.presence_sessions for select using (user_id = auth.uid() or public.can_read_member_activity(organization_id, user_id));
 create policy presence_insert on public.presence_sessions for insert with check (user_id = auth.uid() and public.is_org_member(organization_id));
 create policy presence_update on public.presence_sessions for update using (user_id = auth.uid()) with check (user_id = auth.uid() and public.is_org_member(organization_id));
 

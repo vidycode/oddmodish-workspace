@@ -26,6 +26,8 @@ Hiding a sidebar item is not security. Every protected table uses Supabase Row L
 
 Owner bypasses dashboard scope. Explicit grants can extend a specific resource without changing the person's global role.
 
+Team Leads can read activity, presence and time for members of their own team only. Founder, Agency Operations Lead, Analyst and Owner scopes can read organization-wide operational activity.
+
 ## Accountability data
 
 The system records business-relevant evidence:
