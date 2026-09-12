@@ -129,6 +129,28 @@ returns boolean language sql stable security definer set search_path = public as
   );
 $$;
 
+create or replace function public.can_read_content_item(p_content_id uuid)
+returns boolean language sql stable security definer set search_path = public as $
+  select exists (
+    select 1
+    from public.content_items c
+    join public.memberships reader on reader.organization_id = c.organization_id
+      and reader.user_id = auth.uid() and reader.status = 'active'
+    left join public.memberships writer on writer.organization_id = c.organization_id
+      and writer.user_id = c.writer_id and writer.status = 'active'
+    where c.id = p_content_id and (
+      reader.access_level = 'owner'
+      or reader.job_role in ('founder','agency_ops_lead','analyst')
+      or (reader.job_role = 'team_lead' and reader.team_id is not null and reader.team_id = writer.team_id)
+      or (reader.job_role = 'writer' and c.writer_id = auth.uid())
+      or (reader.job_role = 'uploader' and c.status in (
+        'ready_to_upload','scheduled','uploaded','live','removed',
+        'replacement_ready','reuploaded','verified_live'
+      ))
+    )
+  );
+$;
+
 create or replace function public.create_content_item(
   p_organization_id uuid,
   p_client_name text,
@@ -213,6 +235,7 @@ declare
   v_member public.memberships%rowtype;
   v_allowed boolean := false;
   v_replacement_id uuid;
+  v_from_status public.content_status;
 begin
   if p_idempotency_key is not null and exists (
     select 1 from public.content_events where organization_id in (
@@ -278,6 +301,8 @@ begin
     raise exception 'Revision reason is required';
   end if;
 
+  v_from_status := v_item.status;
+
   update public.content_items set
     status = p_to,
     reddit_url = case when p_to in ('uploaded','reuploaded') then coalesce(nullif(trim(p_reddit_url),''), reddit_url) else reddit_url end,
@@ -292,7 +317,7 @@ begin
   insert into public.content_events (
     organization_id, content_id, actor_id, event_type, from_status, to_status, reason, idempotency_key
   ) values (
-    v_item.organization_id, v_item.id, auth.uid(), 'content.transitioned', v_item.status, p_to, nullif(trim(p_reason),''), p_idempotency_key
+    v_item.organization_id, v_item.id, auth.uid(), 'content.transitioned', v_from_status, p_to, nullif(trim(p_reason),''), p_idempotency_key
   );
 
   if p_to = 'ready_to_upload' then
@@ -334,13 +359,13 @@ alter table public.monitor_events enable row level security;
 alter table public.reminders enable row level security;
 alter table public.notifications enable row level security;
 
-create policy clients_read on public.clients for select using (public.is_org_member(organization_id));
+create policy clients_read on public.clients for select using (public.can_read_delivery(organization_id));
 create policy clients_manage on public.clients for all using (public.can_manage_members(organization_id)) with check (public.can_manage_members(organization_id));
-create policy campaigns_read on public.campaigns for select using (public.is_org_member(organization_id));
+create policy campaigns_read on public.campaigns for select using (public.can_read_delivery(organization_id));
 create policy campaigns_manage on public.campaigns for all using (public.can_manage_members(organization_id)) with check (public.can_manage_members(organization_id));
-create policy content_read on public.content_items for select using (public.can_read_delivery(organization_id));
-create policy content_events_read on public.content_events for select using (public.can_read_delivery(organization_id));
-create policy monitor_events_read on public.monitor_events for select using (public.can_read_delivery(organization_id));
+create policy content_read on public.content_items for select using (public.can_read_content_item(id));
+create policy content_events_read on public.content_events for select using (public.can_read_content_item(content_id));
+create policy monitor_events_read on public.monitor_events for select using (public.can_read_content_item(content_id));
 create policy reminders_read on public.reminders for select using (recipient_id = auth.uid() or public.can_read_team_activity(organization_id));
 create policy notifications_read on public.notifications for select using (recipient_id = auth.uid());
 create policy notifications_update on public.notifications for update using (recipient_id = auth.uid()) with check (recipient_id = auth.uid());
