@@ -5,6 +5,8 @@ import { hasPermission } from "@/src/domain/access";
 import { requireWorkspaceContext } from "@/src/lib/auth/context";
 import { createClient } from "@/src/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 interface Member { id: string; access_level: string; job_role: string; status: string; profiles: { display_name: string | null; email: string } | null }
 interface Invitation { id: string; email: string; access_level: string; job_role: string; status: string }
 interface Team { id: string; name: string }

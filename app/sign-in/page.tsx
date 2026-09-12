@@ -3,6 +3,8 @@ import { isSupabaseConfigured } from "@/src/lib/env";
 import { getAuthenticatedIdentity, getWorkspaceContext } from "@/src/lib/auth/context";
 import { signIn } from "./actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   if (!isSupabaseConfigured()) redirect("/setup");
   if (await getWorkspaceContext()) redirect("/");

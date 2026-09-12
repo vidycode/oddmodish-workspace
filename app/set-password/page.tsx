@@ -1,6 +1,8 @@
 import { setPassword } from "@/app/sign-in/actions";
 import { requireWorkspaceContext } from "@/src/lib/auth/context";
 
+export const dynamic = "force-dynamic";
+
 export default async function SetPasswordPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   await requireWorkspaceContext();
   const { error } = await searchParams;

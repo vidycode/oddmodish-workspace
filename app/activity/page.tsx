@@ -2,6 +2,8 @@ import { requireWorkspaceContext } from "@/src/lib/auth/context";
 import { createClient } from "@/src/lib/supabase/server";
 import { ActivityBeacon } from "@/src/components/activity-beacon";
 
+export const dynamic = "force-dynamic";
+
 interface EventRow { id: string; action: string; entity_type: string; created_at: string; profiles: { display_name: string | null; email: string } | null }
 interface PresenceRow { id: string; current_path: string; last_seen_at: string; active_seconds: number; display_name: string | null; email: string }
 

@@ -4,6 +4,8 @@ import { hasPermission } from "@/src/domain/access";
 import { requireWorkspaceContext } from "@/src/lib/auth/context";
 import { createClient } from "@/src/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 interface TimeEntryRow { id: string; activity: string; started_at: string; ended_at: string | null; duration_minutes: number | null; profiles: { display_name: string | null; email: string } | null }
 
 export default async function TimePage() {
