@@ -18,6 +18,7 @@ export interface DeliveryRow {
   reddit_url: string | null;
   revision_reason: string | null;
   writer_id: string | null;
+  original_content_id: string | null;
   version: number;
   clients: { name: string } | null;
   campaigns: { name: string } | null;
