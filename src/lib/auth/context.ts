@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import type { AccessLevel, MembershipAccess, Permission } from "@/src/domain/access";
 import { hasPermission } from "@/src/domain/access";
 import type { Role } from "@/src/domain/model";
@@ -28,16 +29,16 @@ export interface AuthenticatedIdentity {
   email: string;
 }
 
-export async function getAuthenticatedIdentity(): Promise<AuthenticatedIdentity | null> {
+export const getAuthenticatedIdentity = cache(async (): Promise<AuthenticatedIdentity | null> => {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
   if (error || !userId) return null;
   return { userId, email: String(data.claims.email ?? "") };
-}
+});
 
-export async function getWorkspaceContext(): Promise<WorkspaceContext | null> {
+export const getWorkspaceContext = cache(async (): Promise<WorkspaceContext | null> => {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
@@ -65,7 +66,7 @@ export async function getWorkspaceContext(): Promise<WorkspaceContext | null> {
     accessLevel: row.access_level,
     role: row.job_role,
   };
-}
+});
 
 export async function requireWorkspaceContext(permission?: Permission): Promise<WorkspaceContext> {
   if (!isSupabaseConfigured()) redirect("/setup");
