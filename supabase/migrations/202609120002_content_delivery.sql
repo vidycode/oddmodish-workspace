@@ -130,7 +130,7 @@ returns boolean language sql stable security definer set search_path = public as
 $$;
 
 create or replace function public.can_read_content_item(p_content_id uuid)
-returns boolean language sql stable security definer set search_path = public as $
+returns boolean language sql stable security definer set search_path = public as $$
   select exists (
     select 1
     from public.content_items c
@@ -149,7 +149,7 @@ returns boolean language sql stable security definer set search_path = public as
       ))
     )
   );
-$;
+$$;
 
 create or replace function public.create_content_item(
   p_organization_id uuid,
