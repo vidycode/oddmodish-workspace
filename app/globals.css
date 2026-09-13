@@ -94,3 +94,56 @@ button { cursor: pointer; }
 @media (max-width: 820px) { .presenceGrid { grid-template-columns: 1fr; } }
 .inviteForm { grid-template-columns: minmax(220px, 1.4fr) 110px 150px 150px auto; }
 @media (max-width: 980px) { .inviteForm { grid-template-columns: 1fr 1fr; }.inviteForm label:first-child, .inviteForm .formMessage { grid-column: 1 / -1; } }
+
+.wideManagement { max-width: 1420px; }
+.headerActions { display: flex; align-items: center; gap: 10px; }
+.deliveryWorkspace { display: grid; gap: 14px; }
+.sectionHeading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.sectionHeading h2 { margin: 4px 0 14px; }
+.sectionHeading small, .sectionHeading span { color: var(--muted); font-size: 10px; }
+.contentCreateForm { display: grid; grid-template-columns: 1.2fr 1.2fr .6fr 1fr; gap: 12px; align-items: end; }
+.contentCreateForm label { display: grid; gap: 6px; color: #554f5e; font-size: 10px; font-weight: 750; }
+.contentCreateForm input, .contentCreateForm select, .contentCreateForm textarea { width: 100%; border: 1px solid var(--border); border-radius: 9px; padding: 10px 11px; background: #fff; color: var(--ink); outline: none; resize: vertical; }
+.contentCreateForm input:focus, .contentCreateForm select:focus, .contentCreateForm textarea:focus { border-color: #9f8df8; box-shadow: 0 0 0 3px #6c4cf614; }
+.contentCreateForm .span2 { grid-column: span 2; }
+.contentCreateForm .spanAll { grid-column: 1 / -1; }
+.deliveryGroup { padding: 0; overflow: hidden; }
+.deliveryGroup .sectionHeading { padding: 16px 18px 5px; }
+.deliveryTable { display: grid; }
+.deliveryRow { display: grid; grid-template-columns: minmax(260px, 1.5fr) minmax(145px, .75fr) minmax(150px, .7fr) minmax(190px, 1fr); gap: 14px; align-items: center; padding: 13px 18px; border-top: 1px solid #efecf1; }
+.deliveryRow:hover { background: #fbfaff; }
+.contentIdentity { display: grid; grid-template-columns: 54px 1fr; gap: 10px; align-items: center; min-width: 0; }
+.contentIdentity strong, .contentIdentity small, .deliveryMeta span, .deliveryMeta small { display: block; }
+.contentIdentity strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.contentIdentity small, .deliveryMeta small { margin-top: 4px; color: var(--muted); font-size: 8px; }
+.deliveryMeta span { font-size: 10px; }
+.kindBadge { padding: 5px 7px; border-radius: 7px; color: #5c3fe1; background: #eee9ff; font-size: 8px; font-weight: 850; text-align: center; text-transform: uppercase; }
+.statusPill { display: inline-block; padding: 5px 8px; border-radius: 999px; color: #665f70; background: #f0eef5; font-size: 8px; font-weight: 800; text-transform: capitalize; }
+.status-ready_for_review, .status-ready_to_upload, .status-replacement_ready { color: #5a3dd6; background: #eee9ff; }
+.status-live, .status-verified_live { color: #167258; background: #e7f8f2; }
+.status-removed, .status-revision_required, .status-replacement_required { color: #a93343; background: #ffedef; }
+.status-uploaded, .status-reuploaded { color: #2768b7; background: #eaf3ff; }
+.revisionNote { display: block; margin-top: 5px; color: #a93343; font-size: 8px; }
+.rowActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.rowActions button, .rowActions a { border: 1px solid var(--border); border-radius: 7px; padding: 7px 9px; background: white; color: #5e5767; font-size: 8px; font-weight: 750; text-decoration: none; }
+.rowActions button:hover, .rowActions a:hover { border-color: #b9acf8; color: #5737dc; }
+.rowActions button:disabled { cursor: wait; opacity: .5; }
+.emptyDelivery { padding: 44px; text-align: center; }
+.emptyDelivery p { color: var(--muted); font-size: 11px; }
+@media (max-width: 1050px) {
+  .contentCreateForm { grid-template-columns: 1fr 1fr; }
+  .deliveryRow { grid-template-columns: minmax(220px, 1.5fr) 140px 1fr; }
+  .deliveryRow .deliveryMeta { display: none; }
+}
+@media (max-width: 720px) {
+  .managementShell { padding: 28px 14px 50px; }
+  .managementHeader { display: grid; }
+  .contentCreateForm { grid-template-columns: 1fr; }
+  .contentCreateForm .span2, .contentCreateForm .spanAll { grid-column: auto; }
+  .deliveryRow { grid-template-columns: 1fr; }
+  .rowActions { justify-content: flex-start; }
+}
+
+.viewTabs { display: flex; gap: 5px; margin: -8px 0 14px; padding: 4px; width: fit-content; border: 1px solid var(--border); border-radius: 10px; background: #eeecf2; }
+.viewTabs a { padding: 7px 11px; border-radius: 7px; color: #746f7d; font-size: 9px; font-weight: 750; text-decoration: none; }
+.viewTabs a.active { color: #4f35c9; background: white; box-shadow: 0 2px 8px rgba(35,25,55,.08); }
