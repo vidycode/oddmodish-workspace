@@ -171,6 +171,13 @@ $$;
 create trigger auth_user_profile after insert or update of email on auth.users
 for each row execute function public.handle_new_auth_user();
 
+-- Backfill profiles for Auth users created before this migration was installed.
+insert into public.profiles (id, email)
+select id, email
+from auth.users
+where email is not null
+on conflict (id) do update set email = excluded.email, updated_at = now();
+
 create or replace function public.is_org_member(p_organization_id uuid)
 returns boolean language sql stable security definer set search_path = public as $$
   select exists (
