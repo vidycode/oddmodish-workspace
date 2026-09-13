@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ActivityBeacon } from "@/src/components/activity-beacon";
+import { AppShell } from "@/src/components/app-shell";
 import { ContentWorkspace, type DeliveryRow } from "@/src/components/content-workspace";
 import { requireWorkspaceContext } from "@/src/lib/auth/context";
 import { createClient } from "@/src/lib/supabase/server";
@@ -42,10 +42,9 @@ export default async function ContentPage({ searchParams }: { searchParams: Prom
     label: row.profiles?.display_name ?? row.profiles?.email ?? "Writer",
   }));
 
-  return <main className="managementShell wideManagement">
-    <ActivityBeacon organizationId={context.organizationId} />
+  return <AppShell context={context}><main className="managementShell wideManagement">
     <header className="managementHeader"><div><p className="eyebrow">CONTENT DELIVERY</p><h1>{focusConfig[focus].title}</h1><p>{focusConfig[focus].description}</p></div><div className="headerActions"><Link className="secondaryButton" href="/">Control Tower</Link><span className="accessPill">{context.role.replaceAll("_"," ")} · {context.accessLevel}</span></div></header>
     <nav className="viewTabs" aria-label="Delivery views"><Link className={focus === "all" ? "active" : ""} href="/content">All workflow</Link><Link className={focus === "live" ? "active" : ""} href="/content?focus=live">Upload & live</Link><Link className={focus === "replacements" ? "active" : ""} href="/content?focus=replacements">Replacements</Link></nav>
     <ContentWorkspace organizationId={context.organizationId} userId={context.userId} accessLevel={context.accessLevel} role={context.role} initialItems={items} writers={writers} showCreate={focus === "all"} />
-  </main>;
+  </main></AppShell>;
 }
