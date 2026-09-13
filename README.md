@@ -1,18 +1,45 @@
 # Oddmodish OS
 
-Internal agency operations workspace for Oddmodish.
+Internal agency operations workspace for Oddmodish, built around one auditable flow:
 
-This repository will contain the web application and operational domain contracts for the complete flow:
+**Writer submission → review → upload queue → Reddit URL → live/removed monitoring → replacement → reporting and renewal.**
 
-**Writer submission → Upload queue → Reddit delivery → Live/removed monitoring → Replacement workflow → Reporting and renewal.**
+## Bootstrap contents
 
-The implementation is being introduced through reviewable pull requests. Production credentials and client data must never be committed.
+- Next.js 16 App Router, React 19 and strict TypeScript
+- Responsive Control Tower starter UI
+- Shared domain contracts for content, clients, campaigns, Reddit accounts, time, reminders and CRM
+- Explicit content state machine and initial automation recipes
+- Role and permission vocabulary
+- GitHub Actions quality gate
+- Netlify deployment configuration
+- Architecture, phased implementation plan and developer handoff
+
+## Local development
+
+```bash
+npm ci
+cp .env.example .env.local
+npm run dev
+```
+
+Open <http://localhost:3000>.
+
+## Quality gate
+
+```bash
+npm run check
+```
+
+This runs ESLint, TypeScript and an optimized production build.
 
 ## Product references
 
 - [Figma workspace](https://www.figma.com/design/nsgmGxYlMe0z3lv4VweSrO)
-- Implementation runbook: added in the bootstrap pull request
+- [Architecture](docs/architecture.md)
+- [Developer handoff](docs/developer-handoff.md)
+- [Implementation plan](docs/implementation-plan.md)
 
-## Status
+## Security
 
-Repository initialized. Application foundation is being prepared on `chore/bootstrap-v1`.
+Never commit production credentials, client content or real Reddit account data. Configure secrets in `.env.local` and Netlify environment settings only.
