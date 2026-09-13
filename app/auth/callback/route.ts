@@ -11,7 +11,20 @@ export async function GET(request: NextRequest) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) return NextResponse.redirect(new URL(`/sign-in?error=${encodeURIComponent(error.message)}`, request.url));
 
+  const { data: existingMembership } = await supabase
+    .from("memberships")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+  if (existingMembership) return NextResponse.redirect(new URL(next, request.url));
+
   const { error: claimError } = await supabase.rpc("claim_pending_invitation");
-  if (claimError) return NextResponse.redirect(new URL(`/no-access?reason=${encodeURIComponent(claimError.message)}`, request.url));
+  if (claimError) {
+    const { count: workspaceCount } = await supabase
+      .from("organizations")
+      .select("id", { count: "exact", head: true });
+    if (workspaceCount === 0) return NextResponse.redirect(new URL("/bootstrap", request.url));
+    return NextResponse.redirect(new URL(`/no-access?reason=${encodeURIComponent(claimError.message)}`, request.url));
+  }
   return NextResponse.redirect(new URL(next, request.url));
 }

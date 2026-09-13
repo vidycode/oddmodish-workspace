@@ -1,4 +1,4 @@
-import { ActivityBeacon } from "@/src/components/activity-beacon";
+import { AppShell } from "@/src/components/app-shell";
 import { TimeTracker } from "@/src/components/time-tracker";
 import { hasPermission } from "@/src/domain/access";
 import { requireWorkspaceContext } from "@/src/lib/auth/context";
@@ -17,9 +17,8 @@ export default async function TimePage() {
   const { data } = await query;
   const entries = (data ?? []) as unknown as TimeEntryRow[];
 
-  return <main className="managementShell">
-    <ActivityBeacon organizationId={context.organizationId} />
+  return <AppShell context={context}><main className="managementShell">
     <header className="managementHeader"><div><p className="eyebrow">TIME & PRESENCE</p><h1>{canReadTeam ? "Team time" : "My time"}</h1><p>Track active work, start and end times, activity type, and completed duration.</p></div><TimeTracker organizationId={context.organizationId} canTrack /></header>
     <section className="managementPanel"><div className="historyHeader"><span>Person</span><span>Activity</span><span>Started</span><span>Ended / duration</span></div>{entries.length ? entries.map((entry) => <div className="historyRow" key={entry.id}><strong>{entry.profiles?.display_name ?? entry.profiles?.email ?? "Member"}</strong><span>{entry.activity}</span><time>{new Date(entry.started_at).toLocaleString("en-GB")}</time><span>{entry.ended_at ? `${new Date(entry.ended_at).toLocaleTimeString("en-GB")} · ${entry.duration_minutes ?? 0}m` : "● Active now"}</span></div>) : <p className="emptyState">No tracked sessions yet.</p>}</section>
-  </main>;
+  </main></AppShell>;
 }
