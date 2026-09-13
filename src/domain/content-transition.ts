@@ -41,7 +41,6 @@ const uploaderPairs = new Set([
   "uploaded:live",
   "uploaded:removed",
   "live:removed",
- /be
   "replacement_ready:reuploaded",
   "reuploaded:verified_live",
   "reuploaded:removed",
